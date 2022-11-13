@@ -1,13 +1,16 @@
-local arg, character = ({...})[1], nil
-if (arg and (typeof(arg) == 'Instance') and arg:IsA('Model')) then
-	character = arg
-else
+local args = {...}
+local character, bin, tableIsPreset = args[1], args[2], true
+if ((not character) or (typeof(character) ~= 'Instance') or (not character:IsA('Model'))) then
 	warn('Invalid character to animate!')
 	return
 end
 if (character.Humanoid.RigType ~= Enum.HumanoidRigType.R6) then
 	warn('Invalid humanoid state (character needs to be on R6!)')
 	return
+end
+if (type(bin) ~= 'table') then
+	bin = {}
+	tableIsPreset = false
 end
 local Torso = character.Torso
 local RightShoulder = Torso["Right Shoulder"]
@@ -435,6 +438,13 @@ end
 
 function onDied()
 	pose = "Dead"
+	if (not tableIsPreset) then
+		for i, v in next, bin do
+			v:Disconnect()
+			bin[i] = nil
+		end
+		table.clear(bin)
+	end
 end
 
 function onJumping()
@@ -591,19 +601,19 @@ function move(time)
 end
 
 -- connect events
-Humanoid.Died:connect(onDied)
-Humanoid.Running:connect(onRunning)
-Humanoid.Jumping:connect(onJumping)
-Humanoid.Climbing:connect(onClimbing)
-Humanoid.GettingUp:connect(onGettingUp)
-Humanoid.FreeFalling:connect(onFreeFall)
-Humanoid.FallingDown:connect(onFallingDown)
-Humanoid.Seated:connect(onSeated)
-Humanoid.PlatformStanding:connect(onPlatformStanding)
-Humanoid.Swimming:connect(onSwimming)
+bin[#bin + 1] = Humanoid.Died:connect(onDied)
+bin[#bin + 1] = Humanoid.Running:connect(onRunning)
+bin[#bin + 1] = Humanoid.Jumping:connect(onJumping)
+bin[#bin + 1] = Humanoid.Climbing:connect(onClimbing)
+bin[#bin + 1] = Humanoid.GettingUp:connect(onGettingUp)
+bin[#bin + 1] = Humanoid.FreeFalling:connect(onFreeFall)
+bin[#bin + 1] = Humanoid.FallingDown:connect(onFallingDown)
+bin[#bin + 1] = Humanoid.Seated:connect(onSeated)
+bin[#bin + 1] = Humanoid.PlatformStanding:connect(onPlatformStanding)
+bin[#bin + 1] = Humanoid.Swimming:connect(onSwimming)
 
 -- setup emote chat hook
-game:GetService('Players').LocalPlayer.Chatted:connect(function(msg)
+bin[#bin + 1] = game:GetService('Players').LocalPlayer.Chatted:connect(function(msg)
 	local emote = ""
 	if msg == "/e dance" then
 		emote = dances[math.random(1, #dances)]
@@ -625,4 +635,4 @@ local function moveFigure()
 	local _, time = wait(0.1)
 	move(time)
 end
-stepped:connect(moveFigure)
+bin[#bin + 1] = game:GetService('RunService').Stepped:connect(moveFigure)
