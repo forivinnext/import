@@ -1,6 +1,6 @@
 local args = {...}
 local character, bin, tableIsPreset = args[1], args[2], true
-if ((not character) or (typeof(character) ~= 'Instance') or (not character:IsA('Model'))) then
+if ((not character) or (typeof(character) ~= 'Instance') or (character.ClassName ~= 'Model')) then
 	warn('Invalid character to animate!')
 	return
 end
